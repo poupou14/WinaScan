@@ -105,12 +105,13 @@ class WSGridParser(HTMLParser):
 		self.__nextN = False
 		self.__next2 = False
 		self.__nextMise = False
+		self.__nextMontant = False
 		self.__game = 0
 		self.__grid = []
 
 
 	def handle_starttag(self, tag, attrs):
-		if tag == "div" and len(attrs) == 1 and not self.__beginOK and attrs[0][0] == "class" and attrs[0][1] == "grid-content" :
+		if tag == "table" and len(attrs) == 1 and not self.__beginOK and attrs[0][0] == "class" and attrs[0][1] == "grid-list" :
 			self.__beginOK = True
 		elif tag == "div" and len(attrs) == 1 and attrs[0][0] == "class" and attrs[0][1] == "small-grid" : # New grid bet
 			self.__game = 0
@@ -175,39 +176,44 @@ class WSGridParser(HTMLParser):
 				currentGrille['croix_2'][self.__game-1] = 0
 			self.__next2 = False
 		elif self.__nextMise and self.__gameOK:
+			print "mise =%s" % data
 			if data.find("/") >= 0 :
-				# Format the scrapped data
-				dataTmp = data
-				#print "full dataTmp =-%s-" % dataTmp
-				dataTmp = unicode(dataTmp.split("/")[1], 'utf-8')
-				dataTmp.replace(" ","")
-				number = True
-				endOfStr = False
-				sizeStr = len(dataTmp)
-				j = 0
-				#print "dataTmp =-%s-" % dataTmp
-				while not dataTmp[j:j+1].isnumeric() and not endOfStr:
-					j+=1
-					endOfStr = (j >= sizeStr)
-					
-				i = j+1
-				while not endOfStr and dataTmp[j:i].isnumeric():
-					i+=1
-					endOfStr = (i >= sizeStr)
-				#print "i =%d" % i
-				#print "mise =%s" % dataTmp[j:i]
-				currentGrille['mise'] = int(dataTmp[j:i])
+				self.__nextMontant = True
+				self.__nextMise = False
+		elif self.__nextMontant :
+			print "Montant =%s" % data
+			# Format the scrapped data
+			#print "full dataTmp =-%s-" % dataTmp
+			dataTmp = unicode(data, 'utf-8')
+			dataTmp.replace(" ","")
+			number = True
+			endOfStr = False
+			sizeStr = len(dataTmp)
+			j = 0
+			#print "dataTmp =-%s-" % dataTmp
+			while not dataTmp[j:j+1].isnumeric() and not endOfStr:
+				j+=1
+				endOfStr = (j >= sizeStr)
+				
+			i = j+1
+			while not endOfStr and dataTmp[j:i].isnumeric():
+				i+=1
+				endOfStr = (i >= sizeStr)
+			#print "i =%d" % i
+			#print "mise =%s" % dataTmp[j:i]
+			currentGrille['mise'] = int(dataTmp[j:i])
 				# Compute the number of grid
-				for i in range(0,self.__game):
-					doubleOuTriple = currentGrille['croix_1'][i]+currentGrille['croix_x'][i]+currentGrille['croix_2'][i]
-					p1 = currentGrille['mise']*currentGrille['croix_1'][i]/doubleOuTriple
-					WSDataFormat.grille['croix_1'][i]+=currentGrille['mise']*currentGrille['croix_1'][i]/doubleOuTriple
-					WSDataFormat.grille['croix_x'][i]+=currentGrille['mise']*currentGrille['croix_x'][i]/doubleOuTriple
-					WSDataFormat.grille['croix_2'][i]+=currentGrille['mise']*currentGrille['croix_2'][i]/doubleOuTriple
-				self.__gameOK = False
-				#print "WSDataFormat filled !!!!!!!!!!!"
-				#print WSDataFormat.grille
+			for i in range(0,self.__game):
+				doubleOuTriple = currentGrille['croix_1'][i]+currentGrille['croix_x'][i]+currentGrille['croix_2'][i]
+				p1 = currentGrille['mise']*currentGrille['croix_1'][i]/doubleOuTriple
+				WSDataFormat.grille['croix_1'][i]+=currentGrille['mise']*currentGrille['croix_1'][i]/doubleOuTriple
+				WSDataFormat.grille['croix_x'][i]+=currentGrille['mise']*currentGrille['croix_x'][i]/doubleOuTriple
+				WSDataFormat.grille['croix_2'][i]+=currentGrille['mise']*currentGrille['croix_2'][i]/doubleOuTriple
+			self.__gameOK = False
+			#print "WSDataFormat filled !!!!!!!!!!!"
+			#print WSDataFormat.grille
 			self.__next2 = False
+			self.__nextMontant = False
 
 	#def handle_endtag(self, tag):
 		
