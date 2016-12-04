@@ -176,12 +176,10 @@ class WSGridParser(HTMLParser):
 				currentGrille['croix_2'][self.__game-1] = 0
 			self.__next2 = False
 		elif self.__nextMise and self.__gameOK:
-			print "mise =%s" % data
 			if data.find("/") >= 0 :
 				self.__nextMontant = True
 				self.__nextMise = False
 		elif self.__nextMontant :
-			print "Montant =%s" % data
 			# Format the scrapped data
 			#print "full dataTmp =-%s-" % dataTmp
 			dataTmp = unicode(data, 'utf-8')
