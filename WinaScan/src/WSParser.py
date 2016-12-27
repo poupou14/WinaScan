@@ -78,6 +78,7 @@ class WSParser:
 #		Book to read xls file (output of main_CSVtoXLS)
 
 		index_l = 0
+		total = 0
 		size_l = len(WSDataFormat.grille['team1'])
 		for i in range(0, size_l) :
 			p1 = WSDataFormat.grille['croix_1'][i]
@@ -89,6 +90,7 @@ class WSParser:
 			rN = pN/total*100
 			#print "{} vs {} \t{0:.3f}\t{0:.3f}\t{0:.3f}\n".format( WSDataFormat.grille['team1'][i], WSDataFormat.grille['team2'][i], r1, rN, r2)
 			print "{} vs {}\t{:10.3f}\t{:10.3f}\t{:10.3f} ".format( WSDataFormat.grille['team1'][i], WSDataFormat.grille['team2'][i], r1,rN,r2)
+		print "%d grilles" % total
 		#self.__workbook1.save(self.__outPutFileName)
 
 			
@@ -182,14 +184,17 @@ class WSGridParser(HTMLParser):
 		elif self.__nextMontant :
 			# Format the scrapped data
 			#print "full dataTmp =-%s-" % dataTmp
-			dataTmp = unicode(data, 'utf-8')
+			try:
+				dataTmp = unicode(data, 'utf-8')
+			except TypeError :
+				dataTmp = data
 			dataTmp.replace(" ","")
 			number = True
 			endOfStr = False
 			sizeStr = len(dataTmp)
 			j = 0
 			#print "dataTmp =-%s-" % dataTmp
-			while not dataTmp[j:j+1].isnumeric() and not endOfStr:
+			while not endOfStr and not dataTmp[j:j+1].isnumeric():
 				j+=1
 				endOfStr = (j >= sizeStr)
 				
