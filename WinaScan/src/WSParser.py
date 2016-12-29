@@ -1,6 +1,6 @@
 #!/usr/bin/python 
 from HTMLParser import HTMLParser
-import WSDataFormat
+from WSDataFormat import WSDataFormat
 import os,string, sys
 import urllib
 import time
@@ -22,7 +22,6 @@ import xlrd
 
 currentGrille = dict({ 'croix_1':[], 'croix_x':[], 'croix_2':[], 'mise':0})
 grilleEmpty = True
-
 
 def onlyascii(char):
     if ord(char) <= 0 or ord(char) > 127: 
@@ -46,20 +45,21 @@ class WSParser:
     		self.__grilleSheet = self.__workbook1.add_sheet("Repartition", cell_overwrite_ok=True)
 		self.__outPutFileName = "WS.xls"
 		self.__fileGrilleCounter = 0
+		self.wsGridParser = None
 
 	def readWS(self, file_p):
 		# On lit la premiere page puis les suivantes jusqu'a la page vide
 		notRead_l = True
 		self.__outPutFileName = "WSScan.xls"
 		
-		myPronoParser = WSGridParser()
+		self.wsGridParser = WSGridParser()
 		notRead_l = True
 		try :
 			try :
 				#print "Ouverture : %s" % fpUrl_l
 				url = open(file_p)
 				print "Lecture : %s" % file_p
-				myPronoParser.html = url.read()
+				self.wsGridParser.html = url.read()
 				notRead_l = False
 			#except IOError :
 			except IOError:
@@ -67,8 +67,8 @@ class WSParser:
 				print "pb with : %s" % file_p
 				print "url read issue"
 			url.close()
-			myPronoParser.html = filter(onlyascii, myPronoParser.html)
-			myPronoParser.feed(myPronoParser.html)	
+			self.wsGridParser.html = filter(onlyascii, self.wsGridParser.html)
+			self.wsGridParser.feed(self.wsGridParser.html)
 		except IOError:
 			print "problem while reading %s" % file_p
 		
@@ -79,17 +79,17 @@ class WSParser:
 
 		index_l = 0
 		total = 0
-		size_l = len(WSDataFormat.grille['team1'])
+		size_l = len(self.wsGridParser.wsDataFormat.grille['team1'])
 		for i in range(0, size_l) :
-			p1 = WSDataFormat.grille['croix_1'][i]
-			pN = WSDataFormat.grille['croix_x'][i]
-			p2 = WSDataFormat.grille['croix_2'][i]
+			p1 = self.wsGridParser.wsDataFormat.grille['croix_1'][i]
+			pN = self.wsGridParser.wsDataFormat.grille['croix_x'][i]
+			p2 = self.wsGridParser.wsDataFormat.grille['croix_2'][i]
 			total = float(p1+pN+p2)
 			r1 = p1/total*100
 			r2 = p2/total*100
 			rN = pN/total*100
 			#print "{} vs {} \t{0:.3f}\t{0:.3f}\t{0:.3f}\n".format( WSDataFormat.grille['team1'][i], WSDataFormat.grille['team2'][i], r1, rN, r2)
-			print "{} vs {}\t{:10.3f}\t{:10.3f}\t{:10.3f} ".format( WSDataFormat.grille['team1'][i], WSDataFormat.grille['team2'][i], r1,rN,r2)
+			print "{} vs {}\t{:10.3f}\t{:10.3f}\t{:10.3f} ".format( self.wsGridParser.wsDataFormat.grille['team1'][i], self.wsGridParser.wsDataFormat.grille['team2'][i], r1,rN,r2)
 		print "%d grilles" % total
 		#self.__workbook1.save(self.__outPutFileName)
 
@@ -110,6 +110,7 @@ class WSGridParser(HTMLParser):
 		self.__nextMontant = False
 		self.__game = 0
 		self.__grid = []
+		self.wsDataFormat = WSDataFormat()
 
 
 	def handle_starttag(self, tag, attrs):
@@ -144,10 +145,10 @@ class WSGridParser(HTMLParser):
 			#print "data %s" % data
 			if self.__newGridOK == 1: # first loop
 				#print "1st loop : %s" % data
-				WSDataFormat.grille['team1'].append(data)
-				WSDataFormat.grille['croix_1'].append(0)
-				WSDataFormat.grille['croix_x'].append(0)
-				WSDataFormat.grille['croix_2'].append(0)
+				self.wsDataFormat.grille['team1'].append(data)
+				self.wsDataFormat.grille['croix_1'].append(0)
+				self.wsDataFormat.grille['croix_x'].append(0)
+				self.wsDataFormat.grille['croix_2'].append(0)
 				currentGrille['croix_1'].append(0)
 				currentGrille['croix_x'].append(0)
 				currentGrille['croix_2'].append(0)
@@ -157,7 +158,7 @@ class WSGridParser(HTMLParser):
 				currentGrille['croix_2'][self.__game-1]=0
 			self.__nextTeam1 = False
 		elif self.__nextTeam2 and self.__newGridOK == 1 :
-			WSDataFormat.grille['team2'].append(data)
+			self.wsDataFormat.grille['team2'].append(data)
 			self.__nextTeam2 = False
 		elif self.__next1 :
 			if data.find("X") >= 0 :
@@ -209,9 +210,9 @@ class WSGridParser(HTMLParser):
 			for i in range(0,self.__game):
 				doubleOuTriple = currentGrille['croix_1'][i]+currentGrille['croix_x'][i]+currentGrille['croix_2'][i]
 				p1 = currentGrille['mise']*currentGrille['croix_1'][i]/doubleOuTriple
-				WSDataFormat.grille['croix_1'][i]+=currentGrille['mise']*currentGrille['croix_1'][i]/doubleOuTriple
-				WSDataFormat.grille['croix_x'][i]+=currentGrille['mise']*currentGrille['croix_x'][i]/doubleOuTriple
-				WSDataFormat.grille['croix_2'][i]+=currentGrille['mise']*currentGrille['croix_2'][i]/doubleOuTriple
+				self.wsDataFormat.grille['croix_1'][i]+=currentGrille['mise']*currentGrille['croix_1'][i]/doubleOuTriple
+				self.wsDataFormat.grille['croix_x'][i]+=currentGrille['mise']*currentGrille['croix_x'][i]/doubleOuTriple
+				self.wsDataFormat.grille['croix_2'][i]+=currentGrille['mise']*currentGrille['croix_2'][i]/doubleOuTriple
 			self.__gameOK = False
 			#print "WSDataFormat filled !!!!!!!!!!!"
 			#print WSDataFormat.grille
