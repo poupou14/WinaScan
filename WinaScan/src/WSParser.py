@@ -13,7 +13,7 @@ import copy
 #sys.path.append("../Import/xlwt-0.7.2")
 #sys.path.append("../Import/pyexcelerator-0.6.4.1")
 
-from pyExcelerator import *
+#from pyExcelerator import *
 import xlwt
 from xlrd import open_workbook
 from xlwt import Workbook,easyxf,Formula,Style
